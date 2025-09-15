@@ -1,52 +1,256 @@
-## AI-powred Chemical Search and Discovery Application Using RAG and AWS
+# 🧠 GenAI Bedrock with Chroma Knowledgebase  
 
-We are building a Retrieval-Augmented Generation (RAG) application for Stepan Company that enables users to search for chemicals and formulations using AI models in AWS. Instead of relying on exact product names or technical filters, users can type queries like “a biodegradable surfactant for a high-foam dishwashing liquid” or “non-ionic emulsifier for agricultural spray applications.”
-The system will:
-Ingest and index Stepan’s product catalog, technical datasheets, and formulation guides in a vector database.
+A powerful document search and question-answering system built with AWS Bedrock, LangChain, Vhroma, and Streamlit. Upload your documents, ask questions in natural language, and get AI-powered answers with source citations.
 
+[CLICK HERE TO USE THE STRANDS VERSION](https://github.com/patweb99/streamlit-kb/tree/aws-strands)
 
-Use a RAG application understand user intent and retrieve the most relevant products.
+## ✨ Features
 
+- **📄 Multi-format Support**: Upload PDF, TXT, and Markdown files
+- **🔍 Intelligent Search**: Vector-based similarity search using AWS Bedrock embeddings
+- **💬 Natural Language Q&A**: Ask questions and get contextual answers from your documents
+- **📚 Source Citations**: See which documents were used to generate each answer
+- **🌐 Web Interface**: Easy-to-use Streamlit interface
+- **🗂️ File Management**: Upload, view, and delete documents with ease
+- **🔄 Real-time Indexing**: Re-index your knowledgebase whenever you add new documents
 
-Generate summaries explaining why each product matches, highlighting key properties, performance data, and regulatory notes.
+## 🏗️ Architecture
 
+```
+Documents (PDF/TXT/MD) → Text Extraction → Chunking → Vector Embeddings → ChromaDB
+                                                                              ↓
+User Question → Similarity Search → Relevant Chunks → AWS Bedrock LLM → Answer + Sources
+```
 
-This application will make it faster and easier for customers, sales teams, and formulators to find the right products, improving product discovery, reducing support requests, and streamlining decision-making.
+## 🚀 Quick Start
 
-## Problem Statement
+### Prerequisites
 
-Stepan Company maintains a large and complex catalog of specialty chemicals and formulations serving diverse markets, including cleaning products, personal care, agriculture, food, and industrial applications. Today, customers, sales teams, and formulators often struggle to quickly locate the right chemical ingredients that meet specific technical, regulatory, or performance criteria.
-Existing search tools rely on keyword matching and static filters, which require users to know the exact product name, chemical class, or specification beforehand. This results in:
-Inefficient Product Discovery: Users spend significant time browsing datasheets or contacting technical support to identify suitable products.
+1. **AWS Account** with Bedrock access
+2. **Python 3.8+**
+3. **AWS CLI configured** or environment variables set
 
+### Installation
 
-Missed Opportunities: Potential matches are overlooked when users lack familiarity with industry terminology or internal product naming conventions.
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd streamlit-kb
+   ```
 
+2. **Install dependencies**
+   
+   **Option A: Using pip (traditional)**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   
+   **Option B: Using uv (faster, recommended)**
+   ```bash
+   # Install uv if you haven't already
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   
+   # Install dependencies with uv
+   uv pip install -r requirements.txt
+   ```
 
-Poor User Experience: Non-technical users, such as new sales representatives or formulators, face a steep learning curve.
+3. **Set up AWS credentials** (choose one method):
+   
+   **Option A: AWS CLI**
+   ```bash
+   aws configure
+   ```
+   
+   **Option B: Environment variables**
+   ```bash
+   export AWS_ACCESS_KEY_ID=your_access_key
+   export AWS_SECRET_ACCESS_KEY=your_secret_key
+   export AWS_DEFAULT_REGION=us-west-2
+   ```
+   
+   **Option C: .env file**
+   ```bash
+   # Create .env file in project root
+   AWS_ACCESS_KEY_ID=your_access_key
+   AWS_SECRET_ACCESS_KEY=your_secret_key
+   AWS_DEFAULT_REGION=us-west-2
+   ```
 
+4. **Enable Bedrock Models** (in AWS Console)
+   - Go to AWS Bedrock Console
+   - Navigate to "Model access"
+   - Enable these models:
+     - `amazon.titan-embed-text-v1` (for embeddings)
+     - `us.amazon.nova-micro-v1:0` (for Q&A)
 
-## Proposed Solution:
+5. **Run the application**
+   ```bash
+   streamlit run app.py
+   ```
 
-![RAG_pipeline](images/Chemical_Finder_RAG_App_Using_AWS.png)
+6. **Open your browser** to `http://localhost:8501`
 
-Build a Retrieval-Augmented Generation (RAG) application that allows users to search Stepan’s product catalog using natural language queries. By combining a vector database of product descriptions, technical datasheets, and formulation guides with a large language model (LLM), the system can:
-Interpret user intent from natural language (e.g., “a biodegradable surfactant for dishwashing liquid with high foam”).
+## 📖 Usage Guide
 
+### 1. Upload Documents
+- Navigate to the **"📤 Upload Files"** tab
+- Upload PDF, TXT, or MD files
+- Click **"🔄 Re-index Knowledgebase"** to process documents
 
-Retrieve the most relevant products and technical documents from Stepan’s catalog.
+### 2. Ask Questions
+- Go to the **"💬 Ask Questions"** tab
+- Type your question in natural language
+- Click **"Generate Answer"** to get AI-powered responses
+- Review source documents to verify accuracy
 
+### 3. Manage Files
+- Use the **"🗑️ Delete Files"** tab to remove documents
+- Re-index after deleting files to update the search index
 
-Generate clear, concise summaries of why each product matches the request, including key specifications, performance data, and regulatory notes.
+## 🔧 Configuration
 
+### Model Settings
+You can modify these constants in `app.py`:
 
-This solution will improve product discovery, reduce support workload, and enable faster decision-making for customers and internal teams.
-Data Sources
-From the the URL below find “Product Bulletin” PDF files from the Product Finder page4 on Stepan Company - 
-https://www.stepan.com/content/stepan-dot-com/en/products-markets/product-finder.html
+```python
+# Embedding model for document vectorization
+AWS_BEDROCK_EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v1"
 
+# Language model for question answering
+AWS_BEDROCK_LLM_MODEL_ID = "us.amazon.nova-micro-v1:0"
 
-- Web Scrapper : Scrapes the urls for updated information related to chemicals, save the pdfs into S3 buckets. The data in S3 is then split into vectors and saves the embeddings into vector database.
-- AI agents : Build two AI agents , one to retrive relevant information from static documents stored in S3 and another AI agent is scraping the updated information from web.
-- When user asks the query, AI model convert the query into vector query, searches for the answers against the vector database using semantic search (eg cosine similarity) and give the context specific and up-to-date information.
-- AWs services and libraries : we use the S3 buckets, AWS Bedrock to use the AI Models, ChromaDB for vector database, PyPDF to read the PDFs
+# AWS region
+AWS_REGION = "us-west-2"
+
+# Text chunking parameters
+chunk_size = 500        # Characters per chunk
+chunk_overlap = 50      # Overlap between chunks
+```
+
+### Directory Structure
+```
+project/
+├── app.py              # Main application
+├── data/               # Uploaded documents (auto-created)
+├── requirements.txt    # Python dependencies
+├── .env               # AWS credentials (optional)
+└── README.md          # This file
+```
+
+## 📦 Dependencies
+
+Create a `requirements.txt` file with:
+
+```txt
+streamlit>=1.28.0
+langchain>=0.1.0
+langchain-community>=0.0.10
+boto3>=1.34.0
+chromadb>=0.4.0
+PyPDF2>=3.0.0
+python-dotenv>=1.0.0
+```
+
+## 🛠️ How It Works
+
+### Document Processing
+1. **Text Extraction**: PDFs are converted to text using PyPDF2
+2. **Chunking**: Documents are split into ~500 character chunks with 50 character overlap
+3. **Vectorization**: Each chunk is converted to embeddings using AWS Bedrock Titan
+4. **Storage**: Vectors are stored in ChromaDB for fast similarity search
+
+### Question Answering
+1. **Query Processing**: User question is converted to vector embedding
+2. **Similarity Search**: Find the 3 most relevant document chunks
+3. **Context Assembly**: Relevant chunks are sent to AWS Bedrock Nova Micro
+4. **Answer Generation**: LLM generates answer based on document context
+5. **Source Attribution**: Original document chunks are shown for verification
+
+## 🔒 Security Notes
+
+- **Temporary Storage**: ChromaDB uses temporary directories that are cleaned up automatically
+- **Local Processing**: Documents are processed locally before sending to AWS
+- **AWS IAM**: Ensure your AWS credentials have minimal required Bedrock permissions
+- **Data Privacy**: Consider data sensitivity when using cloud AI services
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Q: "No module named 'streamlit'"**
+```bash
+pip install streamlit
+```
+
+**Q: "Unable to locate credentials"**
+- Verify AWS credentials are configured
+- Check AWS region has Bedrock access
+- Ensure Bedrock models are enabled in AWS Console
+
+**Q: "No valid documents found to index"**
+- Upload documents first via "Upload Files" tab
+- Ensure files are PDF, TXT, or MD format
+- Check that files have readable content
+
+**Q: "Error generating answer"**
+- Re-index your knowledgebase
+- Verify Bedrock models are enabled
+- Check AWS credentials and permissions
+
+### Debug Mode
+Add this to see more detailed logs:
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+## 🚀 Deployment Options
+
+### Local Development
+```bash
+streamlit run app.py
+```
+
+### Cloud Deployment
+- **Streamlit Cloud**: Connect your GitHub repo
+- **AWS EC2**: Deploy on EC2 instance with IAM role
+- **Docker**: Containerize the application
+
+### Example Docker Deployment
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8501
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [AWS Bedrock](https://aws.amazon.com/bedrock/) for AI models
+- [LangChain](https://langchain.com/) for AI framework
+- [Streamlit](https://streamlit.io/) for web interface
+- [ChromaDB](https://www.trychroma.com/) for vector storage
+
+## 📞 Support
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/patweb99/streamlit-kb/issues)
+- 📧 **Email**: patweb99@gmail.com
+
+---
+
+**⭐ Star this repo if you find it helpful!**
